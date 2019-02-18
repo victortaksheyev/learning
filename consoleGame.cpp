@@ -202,10 +202,10 @@ void obstacle_t::setType(string usrType) {
 }
 
 void obstacle_t::printObstacle() const {
-//    coord_t obstacleCoord; // composition
-//    cout << "Obstacle Id: " << id << endl;
-//    entprint();
-//    cout << ""obstacleCoord.print();
+    //    coord_t obstacleCoord; // composition
+    //    cout << "Obstacle Id: " << id << endl;
+    //    entprint();
+    //    cout << ""obstacleCoord.print();
 }
 
 class map_t {
@@ -315,26 +315,26 @@ player_t::player_t() {
 }
 
 void player_t::moveUp() {
+    pos.setOldx(pos.x);
     pos.setOldy(pos.y);
-    cout << "old y: " << pos.getOldy() << endl;
     if (pos.y >= 1) pos.y -= 1; // checks that player doesn't move out of map
 }
 
 void player_t::moveDown() {
+    pos.setOldx(pos.x);
     pos.setOldy(pos.y);
-    cout << "old y: " << pos.getOldy() << endl;
-    if (pos.y <= 13) pos.y += 1;
+    if (pos.y < 13) pos.y += 1; // ensures player doesn't leave boundaries
 }
 
 void player_t::moveRight() {
     pos.setOldx(pos.x);
-    cout << "old x: " << pos.getOldx() << endl;
+    pos.setOldy(pos.y);
     if (pos.x <= 49) pos.x += 1;
 }
 
 void player_t::moveLeft() {
     pos.setOldx(pos.x);
-    cout << "old x: " << pos.getOldx() << endl;
+    pos.setOldy(pos.y);
     if (pos.x >= 1) pos.x -= 1;
 }
 
@@ -351,28 +351,36 @@ void makemove(map_t &map, player_t &p, char direction) {
     } else if (direction == 's') {
         p.moveDown();
         map.updatePosition(p);
+    } else if (direction == 'd') {
+        p.moveRight();
+        map.updatePosition(p);
+    } else if (direction == 'a') {
+        p.moveLeft();
+        map.updatePosition(p);
     }
-    
 }
 
 int main () {
     player_t p;
     map_t map;
     char c = '\0';
-    do {
-    cout  << "enter a direction to move" << endl;
-    cin >> c;
-    } while (cin.fail() || !(c == 'w' || c == 'a' || c == 's' || c=='d'));
+    while (p.pos.x != 50) {
+        
+        cout  << "enter a direction to move";
+        cin >> c;
+        
+        map.clearScreen();
+        makemove(map, p, c);
+        map.print();
+    }
     
-    makemove(map, p, c);
-    map.print();
-
     
-//    syntax for adding things
-//    while (mymap.obstaclenum() < 700) {
-//        mymap.addObstacle(newcoord);
-//    }
-
+    
+    
+    //    syntax for adding things
+    //    while (mymap.obstaclenum() < 700) {
+    //        mymap.addObstacle(newcoord);
+    //    }
     
     return 0;
 }
