@@ -375,16 +375,114 @@ int main () {
     }
     
     
+        // ----------- DEMO of functions in other classes -------------
     
+    // coord_t class ----------------------------------------------
+#ifdef curses
+    printw("\ncoord_t class --------\n");
+#else
+    cout <<"\ncoord_t class --------" << endl;
+#endif
     
-    //    syntax for adding things
-    //    while (mymap.obstaclenum() < 700) {
-    //        mymap.addObstacle(newcoord);
-    //    }
+    coord_t defaultCoord;
+    defaultCoord.print();           // should print [0, 0]
+    coord_t paramCoord(5, 10);
+    paramCoord.print();             // should print [5, 10]
+    paramCoord.setOldx(200);
+#ifdef curses
+    printw("old x: %i\n", paramCoord.getOldx()); // should print "old x: 200"
+#else
+    cout << "old x: " << paramCoord.getOldx() << endl;
+#endif
+
+    // ent_t class -------------------------------------------------
+#ifdef curses
+    printw("\nent_t class --------\n");
+#else
+    cout << "\nent_t class --------" << endl;
+#endif
     
+    ent_t testEnt;
+    testEnt.setId(123);
+#ifdef curses
+    printw("id: %i\n", testEnt.getId()); // should print "id: 100"
+#else
+    cout << "id: " << testEnt.getId() << endl;
+#endif
+    testEnt.entprint();
+    
+    // health_t class  ---------------------------------------------
+#ifdef curses
+    printw("\nhealth_t class --------\n");
+#else
+    cout << "\nhealth_t class --------" << endl;
+#endif
+    
+    health_t testh;
+    testh.sethp(100);
+#ifdef curses
+    printw("health: %i\n", testh.gethp()); // should print "health: 100"
+#else
+    cout << "health: " << testh.gethp() << endl;
+#endif
+    
+    // weapon_t class ----------------------------------------------
+#ifdef curses
+    printw("\nweapon_t class --------");
+#else
+    cout << "\nweapon_t class --------" << endl;
+#endif
+    
+    weapon_t revolver;              // creating an object w/ default parameter
+    
+    revolver.print();               // should print default params:
+    
+    revolver.setDmg(1000);
+    revolver.setMagAmmo(20);
+    revolver.setModel("best pistol");
+    revolver.print();               // changes should reflect
+    revolver.reload();              // should print out 54321 to show it takes 5 seconds to reload
+    
+
+    // player_t class ----------------------------------------------
+#ifdef curses
+    printw("\n\nplayer_t class --------\n");
+#else
+    cout << "\n\nplayer_t class --------" << endl;
+#endif
+    
+    player_t testPlayer;
+    testPlayer.setPid(9);           // pid should be 9
+    testPlayer.print();
+    
+    // trigger_t() class -------------------------------------------
+#ifdef curses
+    printw("\ntrigger class --------\n");
+#else
+    cout << "\ntrigger class -------" << endl;
+#endif
+    
+    trigger_t testTrig;
+    testTrig.setWhatIDo("win the game");
+#ifdef curses
+    printw("What I do: %s", testTrig.whatIDo().c_str());    // should print out "win the game"
+#else
+    cout << "What I do: " << testTrig.whatIDo() << endl;
+#endif
+
+     // obstacle_t() class -------------------------------------------
+#ifdef curses
+    printw("\n\nobstacle_t class --------\n");
+#else
+    cout << "\nobstacle_t class --------" << endl;
+#endif
+    obs[10].printObstacle();
+    
+#ifdef curses
+    printw("\n\nPress Any Key to Exit\n");
+#endif
+
+    // ----------- DEMO of functions in other classes ---------------
+    endCurses();
     return 0;
 }
-
-// expected output:
-// [5, 10]
-// [rand, rand]
