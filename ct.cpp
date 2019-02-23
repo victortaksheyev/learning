@@ -67,6 +67,31 @@ void employee::printInfo() {
     cout << "----------------------------------------------" << endl;
 }
 
+class a {
+public:
+    a() { x = 10; y = 20; z = 30;}
+public:
+    int x;
+    int y;
+    int z;
+};
+
+
+class b : private a {   // public members of a become private so a b object no longer access them
+   
+public:
+     b() {xd = 10;}
+    int add() {return x+=3;}
+    int xd;
+};
+
+
+class c : private b {   // public members of b become private so a c object can no longer access them
+public:
+//    void print() {cout << x << endl;}
+};
+
+
 int main() {
     string empName;
     int empSal;
