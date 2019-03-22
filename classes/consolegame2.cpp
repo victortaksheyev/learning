@@ -14,16 +14,22 @@
 using namespace std;
 
 #define curses
-#define GRIDX 50
-#define GRIDY 14
-#define ROUNDCNT 100
-#define ALIVE true // Nickname for true
-#define DEAD false // and false
 #define SAVELASTROUND true // if we want to save the last round set to true so it doesn't get autoerased
+
+int GRIDX;
+int GRIDY;
 
 const int X = 0;
 const int Y = 1;
 const int COORDINATE = 2;
+const int PLAYERCNT = 25;
+const int INT_TO_UPPER_ALPH = 65;   // num to add to 0 to make it represent 'A'
+const bool ALIVE = true;
+const bool DEAD = false;
+const int ROUNDCOUNT = 100;
+
+// uncomment when obstacles are needed
+// const int NUM_OF_OBSTACLES = 20; // declaring number of obstacles
 
 /*
  * class_identifier: abstract class with virtual move functions and methods to set and get speed
@@ -129,8 +135,8 @@ void coord_t::randomize() {
     oldx = x;
     oldy = y;
     
-    x = rand() % 50;    // mod operator to ensure x and y are within coord system
-    y = rand() % 14;
+    x = rand() % GRIDX;    // mod operator to ensure x and y are within coord system
+    y = rand() % GRIDY;
 }
 
 /*
@@ -271,6 +277,14 @@ trigger_t::trigger_t(string usrInfo, char usrid) {
     id = usrid;
 }
 
+int max(int x, int y, int z, int k) {
+    int largest = x;
+    if (y > largest) largest = y;
+    if (z > largest) largest = z;
+    if (k > largest) largest = k;
+    return largest;
+}
+
 /*
  * class_identifier: creates map and adds entities to it
  * constructors: map_t()
@@ -294,10 +308,22 @@ public:
     void addPlayer(coord_t&, int);
     void addTrigger(coord_t& c, char ch);
     void updatePosition(ent_t);
+    // for testing purposes
+    int getRows() const {return rows;}
+    int getCols() const {return cols;}
+    void update();  // updates the map with storm
+    void calcDiameter();    // calculates and returns diameter
+    int diameter;
 private:
+    coord_t centerCoord;
     char **grid;
     int rows;
     int cols;
+    int dXR;    // x dist to the right of center
+    int dXL;    // x dist to the left of center
+    int dYU;    // y dist up of center
+    int dYB;    // y dist down of center
+    
 };
 
 // defualt paramater, intiializing the grid
@@ -312,12 +338,24 @@ map_t::map_t(int urows, int ucols) {
         grid[i] = new char[this->cols];
     }
 
+    centerCoord.randomize();       // creates a random center
+    printw("Center: "); centerCoord.print();
+
+    dXR = GRIDX - centerCoord.x;
+    dXL = centerCoord.x;
+    dYU = centerCoord.y;
+    dYB = GRIDY - centerCoord.y;
+    calcDiameter();
     initGrid();
+}
+
+void map_t::calcDiameter() {
+    this->diameter = max(dXR, dXL, dYU, dYB);
 }
 
 //  adds player to coordinates passed into function
 void map_t::addPlayer(coord_t& c, int pid) {
-    grid[c.y][c.x] = 'A';
+    grid[c.y][c.x] = (char)(pid+INT_TO_UPPER_ALPH);     // casting into a character
 }
 
 void map_t::addObstacle(coord_t& c) {
@@ -336,9 +374,45 @@ void map_t::addTrigger(coord_t& c, char chr) {
 void map_t::initGrid() {
     for (int i = 0; i < this->rows; i++) {
         for (int j = 0; j < this->cols; j++) {
-            grid[i][j] = 'x';
+            grid[i][j] = ' ';
         }
     }
+}
+
+void map_t::update() {
+    if(dXR == this->diameter) {
+        for (int i = 0; i < this->rows; i++) {
+            grid[i][centerCoord.x + dXR] = 's';
+        }
+        // printw("REMOVE RIGHT");
+        // printw("remove right: %i", centerCoord.x + dXR);
+        dXR -= 1;
+    }
+    if (dXL == this->diameter) {
+        for (int i = 0; i < this->rows; i++) {
+            grid[i][centerCoord.x - dXL] = 's';
+        }
+        // printw("remove left: %i", centerCoord.x - dXL);
+        // printw("REMOVE LEFT");
+        dXL -= 1;
+    }
+    if (dYU == this->diameter) {
+        for (int i = 0; i < this->cols; i++) {
+            grid[centerCoord.y - dYU][i] = 's';
+        }
+        // printw("remove up: %i", centerCoord.y - dYU);
+        // printw("REMOVE UP");
+        dYU -= 1;
+    }
+    if (dYB == this->diameter) {
+        for (int i = 0; i < this->cols; i++) {
+            grid[centerCoord.y + dYB][i] = 's';
+        }
+        // printw("remove down: %i", centerCoord.y + dYB);
+        // printw("REMOVE DOWN");
+        dYB -= 1;
+    }
+    this->diameter -= 1;
 }
 
 /*
@@ -383,7 +457,7 @@ void map_t::updatePosition(ent_t myEnt) {
 void map_t::clearScreen() const {
 #ifdef curses
     clear();
-    printw("Welcome! Use arrow keys or WASD to move. Get to the # to win, press 'q' to quit\n");
+    printw("Victor's Battle Royale!\n");
 #else
     for (int i = 0; i < rows + 1; i++){
         cout << "\33[2K\033[A\r";
@@ -472,9 +546,13 @@ public:
     void moveDown();
     void moveRight();
     void moveLeft();
+    void storeLocation();
+    void printLocation();
 public:
     weapon_t wep;
 private:
+    static string playerLocation[PLAYERCNT][2]; // array common to all players to store location
+    static bool playerStatus[PLAYERCNT];        // 1d array to store player if player is dead or alive
     string name;
     int pid;
     static int pCnt;
@@ -482,11 +560,28 @@ private:
 
 int player_t::pCnt = 0;
 
+string player_t::playerLocation[PLAYERCNT][2] = {{""}};     //initialize 2d array to 0s
+bool player_t::playerStatus[PLAYERCNT] = {ALIVE};           //initialize all players to be alive
+
 // defualt constructor setting pid and name
 player_t::player_t() {
     pid = pCnt++;
-    string spid = to_string(pid); // pid as string
+    string spid = to_string(pid);   // pid as string
     name = "Player " + spid;
+}
+
+/*
+ * function_identifier: stores player info into 2d array common to all players
+ * parameters: none
+ * return value: none
+ */
+void player_t::storeLocation() {
+    playerLocation[pid][0] = pid+INT_TO_UPPER_ALPH;                         // storing the character
+    playerLocation[pid][1] = to_string(pos.x) + "," + to_string(pos.y);    // storing coords                   
+}
+
+void player_t::printLocation() {
+    printw("%s | %s\n", (playerLocation[pid][0]).c_str(), (playerLocation[pid][1]).c_str());
 }
 
 /*
@@ -639,9 +734,7 @@ void initCurses() {
     keypad(stdscr, TRUE); // accepts arrow keys
     noecho();
     raw(); //prevents exiting with commands
-    printw("Welcome! Use arrow keys or WASD to move. Get to the # to win, press 'q' to quit\n");
-#else
-    cout << "Welcome! Use WASD to move. Get to the # to win, press 'q' to quit" << endl;
+    printw("Victor's Battle Royale!\n");
 #endif
 }
 
@@ -666,6 +759,7 @@ bool winRnd(player_t p, trigger_t t) {
 
 int main(int argc, char* argv[]) {
     initCurses();
+    int round = 0;
 
     if (argc != 3) {
         printw("ERROR: You must enter 2 arguments");
@@ -673,64 +767,49 @@ int main(int argc, char* argv[]) {
         return -1;
     }
 
-    int rows = atoi(argv[1]);
-    int cols = atoi(argv[2]);
+    GRIDX = atoi(argv[1]);
+    GRIDY = atoi(argv[2]);
     srand(time(NULL)); // creates random seed rand() function
-    const int NUM_OF_OBSTACLES = 100; // declaring number of obstacles
-    
-    // create objects
-    player_t p;
 
-    map_t map(rows, cols);
-    coord_t c;
-    trigger_t exit;
-    obstacle_t obs[NUM_OF_OBSTACLES];
+    map_t map(GRIDY, GRIDX);        // map automatically generates a random center within its constructor
     
-    
-    
-    for (int i = 0; i < NUM_OF_OBSTACLES; i++) {    // spawns 200 random objects
-        obs[i].pos.randomize();
-        map.addObstacle(obs[i].pos);
+    printw("Number of rows: %i\n", map.getRows());
+    printw("Number of cols: %i\n", map.getCols());
+
+    // create objects
+    player_t p[PLAYERCNT];                 // 25 player objects
+    for (int i = 0; i < PLAYERCNT; i++) {
+        p[i].pos.randomize();              // sets player to random position
+        map.addPlayer(p[i].pos, i);        // adds player to map
+        p[i].storeLocation();
     }
-    
-    p.pos.randomize();              // sets player to random position
-    map.addPlayer(p.pos, 1);        // adds player to map
-    
-    exit.pos.randomize();           // randomizes exit pos
-    map.addTrigger(exit.pos, '#');  // defines exit as '#' and adds to map
-    
-#ifdef curses
-    int input = 0;
-#else
-    char input = '0';               // stores arrow keys
-#endif
-    
+    char input = ' ';
     map.print();                    // prints initial map
-    
-    // game loop until player reaches exit trigger or presses q
-    while(!(winRnd(p, exit)) && (input != 'q')) {
-#ifdef curses
+    while (round < ROUNDCOUNT && input != 'q') {
         input = getch();
-#else
-        cin.clear();
-        cin >> input;
-        cin.ignore(100, '\n');      // prevent cin from rereading in case user entered more than 1 char
-#endif
-        makemove(map, p, input);    // updates map and player obj based on usr input
-        map.clearScreen();          // resets to show updated screen
-        map.print();
+        if (input == '\n') {
+            map.update();
+            printw("\n");
+            map.clearScreen();
+            map.print();
+        } else {
+            printw("Error! Only Press Enter.");
+        }
+        round++;
     }
     
-    map.clearScreen();              // clears screen post-victory
-#ifdef curses
-    printw("Congrats! You won (or quit)! \nBelow is a demo of the methods in my classes:\n");
-#else
-    cout << "Congrats! You won (or quit)! \nBelow is a demo of the methods in my classes:" << endl;
-#endif
+
+    printw("Diamater of map: %i", map.diameter);
     
 
     
     // ----------- DEMO of functions in other classes ---------------
+    // show that print location works
+
+    // for (int i = 0; i< PLAYERCNT; i++) {
+    //     p[i].printLocation();
+    // }
+
     endCurses();
     return 0;
 }
