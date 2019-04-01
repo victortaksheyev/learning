@@ -6,65 +6,73 @@ using namespace std;
 
 const string NEW = "-NEW";
 
+void printArray (int **arr) {
+    // will end at index 1, because index 0 will not need to be printed again
+    for (int i = arr[0][0]; i >= 1; i--) {
+        // prints out initial number 
+        if (i == arr[0][0]) {
+            cout << arr[0][0] << endl;
+        }
+        // printing all elements of next array
+        for (int j = 0; j < arr[i][0] + 1; j++) {       // loops until arr[i][0] + 1 because it includes the first element (metadata)
+            cout << arr[i][j] << " ";
+        }
+        cout << endl;
+    }
+}
+
 int main (int argc, char * argv[]) {
     bool c_allocation = true;
     if (argv[2] == NEW.c_str()) c_allocation = false; // if user specifies to use new
     
     int rows;
-    ifstream input(argv[1]);                    // ifstream 
-    input >> rows;                              // storing first number of file (which determines # rows) into rows
+    int cols;
+    ifstream input(argv[1]);
+    input >> rows;    
+
     if (c_allocation) {
-        int *cols = (int*)malloc(sizeof(int) * rows);
-        int ** twoDArr = (int**)malloc(sizeof(int *) * rows);
-        for (int i = 0; i < rows; i++) {
-            input >> cols[i];                       // storing first number of each row (which determines # cols) into cols
-            twoDArr[i] = (int *)malloc(sizeof(int) * cols[i]);
-            for (int j = 0; j < cols[i]; j++) {     // storing data into the columns
+        int ** twoDArr = (int**)malloc(sizeof(int*)*(rows + 1));
+        for (int i = 0; i < rows + 1; i++) {
+            if (i == 0) {
+                cols = 1;
+                twoDArr[i] = (int*)malloc(sizeof(int)*cols);
+                twoDArr[i][0] = rows;
+                continue;
+            }
+            input >> cols;
+            twoDArr[i] = (int*)malloc(sizeof(int)*(cols+1));
+            twoDArr[i][0] = cols;
+            for (int j = 1; j < cols + 1; j++) {
                 input >> twoDArr[i][j];
-            }    
+            }
         }
-
-    } else { 
-        int *cols = new int[rows];
-        int ** twoDArr = new int*[rows];
-
-        for (int i = 0; i < rows; i++) {
-            input >> cols[i];                       // storing first number of each row (which determines # cols) into cols
-            twoDArr[i] = new int[cols[i]];
-            for (int j = 0; j < cols[i]; j++) {     // storing data into the columns
-                input >> twoDArr[i][j];
-            }    
-        }
-    }
-
-    // printing out info
-    cout << rows << endl;                       // printing first element
-    // loop to print out array in reverse
-    for (int i = rows-1; i >= 0; i--) {         // beginning at rows-1 because rows is size of array [0, row-1]
-        cout << cols[i] << " ";                 // printing out first (metadata) columns 
-        for (int j = 0; j < cols[i]; j++) {     // loop to print out columns
-            cout << twoDArr[i][j] << " ";
-        }
-        cout << endl;
-    }
-
-    // de-allocating memory
-    if (malloc) {
-        for (int i = 0; i < rows; i++) {
+        printArray(twoDArr);
+        // deallocating
+        for (int i = 0; i < rows + 1; i++) {
             free(twoDArr[i]);
         }
-        free (twoDArry);
-        free (cols)
+        free(twoDArr);
     } else {
-        for (int i = 0; i < rows; i++) {
+        int ** twoDArr = new int*[rows + 1];
+        for (int i = 0; i < rows + 1; i++) {
+            if (i == 0) {
+                cols = 1;
+                twoDArr[i] = new int[cols];
+                twoDArr[i][0] = rows;
+                continue;
+            }
+            input >> cols;
+            twoDArr[i] = new int[cols+1];
+            twoDArr[i][0] = cols;
+            for (int j = 1; j < cols + 1; j++) {
+                input >> twoDArr[i][j];
+            }
+        }
+        printArray(twoDArr);
+        // deallocating
+        for (int i = 0; i < rows + 1; i++) {
             delete [] twoDArr[i];
         }
-        delete [] twoDArr;                      // deallocating 1d array
-        delete [] cols;
-    }
-
-    input.close();                              // closing input file
-
-
-    return 0;
+        delete [] twoDArr;
+    }    
 }
