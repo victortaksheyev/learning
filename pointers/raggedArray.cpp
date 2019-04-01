@@ -74,5 +74,6 @@ int main (int argc, char * argv[]) {
             delete [] twoDArr[i];
         }
         delete [] twoDArr;
-    }    
+    }
+    input.close();
 }
