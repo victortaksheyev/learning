@@ -1,19 +1,26 @@
-﻿using System;
+using System;
 
 class ReadFromFile
 {
     // takes a word and returns its initial
-    static char initial(string s) {             // static - method that belongs to the class (don't have to create object of that class to access it)   
-                                                // Math.sqrt(for example)
-        char init;
-        init = s[0];
-        return init;
-    }
+
     static void Main()
-    {
-        string phrase = "Victor";
-        int numChars = phrase.Length;              // returns # chars in string
-        initial(phrase);
-        Console.WriteLine();              
+    {   
+        Console.WriteLine("Enter base number: ");
+        int baseNum = Convert.ToInt32(Console.ReadLine());
+        // Console.WriteLine("The number you entered: {0}", baseNum);
+        Console.Write("Enter exponent: ");
+        int exp = Convert.ToInt32(Console.ReadLine());
+        Console.WriteLine(exponent(baseNum, exp));
+    }
+
+    static int exponent(int baseNum, int powNum) {
+        int result = 1;
+        if (powNum == 0) return 1;
+        // if (powNum == 1) return baseNum;
+        for (int i = 0; i < powNum; i++) {
+            result *= baseNum;           // 3 ^ 2 means 3*3
+        }
+        return result;
     }
 }
