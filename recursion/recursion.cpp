@@ -40,6 +40,26 @@ int smallest(int *list, int lowerI, int upperI) {
 
 }
 
+void reverse(int a[], int left, int right) {
+    if (left >= right-1) return;   // covers case for odd and even length array
+    else {
+            int temp;
+        temp = a[left];
+        a[left] = a[right-1];
+        a[right-1] = temp;
+        reverse(a, left+1, right-1);
+    }
+}
+
+bool elementPresent(int a[], int n, int x) {
+    cout << a[n-1] << endl;
+    if (a[n-1] == x) return true;
+    else if (n == 1) return (a[n-1]==x);
+    else {
+        return elementPresent(a, n-1, x);
+    }
+}
+
 int main (){
 
     int arr[3] = {5, 4, 2};
