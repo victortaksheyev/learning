@@ -69,3 +69,28 @@ int main (){
     cout << smallest(arr, 0, 2) << endl;
     return 0;
 }
+
+void reverse(int a[], int left, int right) {
+    if (left >= right-1) return;        // covers case for odd and even length array
+    else {  
+        int temp;                       // create a temp var
+        temp = a[left];                 // store left data in temp
+        a[left] = a[right-1];           // swap left with right
+        a[right-1] = temp;              // swap right with left
+        reverse(a, left+1, right-1);    // perform operation again, recursively
+    }
+}
+
+/*
+    * function_identifier: returns true if integer x is found in integer array a of size n
+    * parameters: array, size, element to look for
+    * return value: true if found, false otherwise
+*/
+
+bool elementPresent(int a[], int n, int x) {
+    if (a[n-1] == x) return true;           // returns true id finds one match
+    else if (n == 1) return (a[n-1]==x);    // checks and returns last element
+    else {
+        return elementPresent(a, n-1, x);   // performs same operation again
+    }
+}
