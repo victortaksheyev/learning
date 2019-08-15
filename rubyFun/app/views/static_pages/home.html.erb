@@ -6,12 +6,11 @@
     
 </head>
 <body>
-    <h1>StaticPages#home</h1>
-    <p>
-    This is the <%= yield(:name) %> page for the 
-    <a href=""> www.google.com</a>
-    static application
-    </p>    
+    <div class="jumbotron">
+        <h1> Home Page </h1>
+        <p> my first ruby site </p>
+        <%= link_to "sign up now!", signup_path, class: "btn btn-lg btn-primary" %>    
+    </div>
 </body>
 </html>
 
